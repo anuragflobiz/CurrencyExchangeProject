@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class WalletResponse {
+public class WalletResponseDTO {
     private UUID id;
     private CurrencyCode currencyCode;
     private BigDecimal balance;
