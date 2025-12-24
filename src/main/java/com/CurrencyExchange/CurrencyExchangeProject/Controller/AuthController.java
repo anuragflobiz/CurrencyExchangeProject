@@ -1,8 +1,8 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Controller;
 
-import com.coinShiftProject.coinShiftProject.DTO.*;
-import com.coinShiftProject.coinShiftProject.DTO.OtpRequest;
-import com.coinShiftProject.coinShiftProject.Service.AuthService;
+
+import com.CurrencyExchange.CurrencyExchangeProject.DTO.*;
+import com.CurrencyExchange.CurrencyExchangeProject.Service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
