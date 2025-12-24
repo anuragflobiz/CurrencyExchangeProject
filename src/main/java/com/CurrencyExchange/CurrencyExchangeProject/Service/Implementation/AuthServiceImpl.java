@@ -1,8 +1,8 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Service.Implementation;
 
 
-import com.CurrencyExchange.CurrencyExchangeProject.DTO.LoginResponse;
-import com.CurrencyExchange.CurrencyExchangeProject.DTO.createUserDTO;
+import com.CurrencyExchange.CurrencyExchangeProject.DTO.LoginResponseDTO;
+import com.CurrencyExchange.CurrencyExchangeProject.DTO.CreateUserDTO;
 import com.CurrencyExchange.CurrencyExchangeProject.Repository.UserRepository;
 import com.CurrencyExchange.CurrencyExchangeProject.Security.JwtUtil;
 import com.CurrencyExchange.CurrencyExchangeProject.Service.AuthService;
@@ -52,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String create(createUserDTO req) {
+    public String create(CreateUserDTO req) {
 
         String key = "OTP:SIGNUP:" + req.getEmail();
         String savedOtp = redisTemplate.opsForValue().get(key);
@@ -74,7 +74,7 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public LoginResponse login(String email, String password) {
+    public LoginResponseDTO login(String email, String password) {
 
         User user = (User) userRepo.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -83,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Invalid credentials");
 
         String token = jwtUtil.generateToken(user.getId(), email);
-        return new LoginResponse("Login successful", token);
+        return new LoginResponseDTO("Login successful", token);
     }
 
     @Override

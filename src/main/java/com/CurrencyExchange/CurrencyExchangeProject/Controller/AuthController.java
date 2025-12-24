@@ -5,6 +5,8 @@ import com.CurrencyExchange.CurrencyExchangeProject.DTO.*;
 import com.CurrencyExchange.CurrencyExchangeProject.Service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,25 +20,32 @@ public class AuthController {
     @Autowired private AuthService authService;
 
     @PostMapping("/otp")
-    public String sendOtp(@RequestBody OtpRequest req) {
+    public String sendOtp(@RequestBody OtpRequestDTO req) {
+
         return authService.sendOtp(req.getEmail(), req.getPurpose());
     }
 
-    @PostMapping("/users")
-    public String signup(@RequestBody createUserDTO dto) {
+    @PostMapping("/signup")
+    public String signup(@RequestBody CreateUserDTO dto) {
         return authService.create(dto);
     }
 
     @PostMapping("/auth/login")
-    public LoginResponse login(@RequestBody LoginReq req) {
+    public LoginResponseDTO login(@RequestBody LoginRequestDTO req) {
         return authService.login(req.getEmail(), req.getPassword());
     }
 
     @PostMapping("/auth/logout")
-    public String logout(HttpServletRequest request) {
-        String token = request.getHeader("Authorization").substring(7);
-        authService.logout(token);
-        return "Logged out successfully";
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid Authorization header");
+        }
+
+        authService.logout(authHeader.substring(7));
+        return ResponseEntity.ok("Logged out successfully");
     }
 
     @PostMapping("/auth/change-password")
