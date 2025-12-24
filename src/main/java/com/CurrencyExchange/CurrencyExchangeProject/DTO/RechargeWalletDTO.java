@@ -10,7 +10,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class rechargeWalletDTO {
+public class RechargeWalletDTO {
     private BigDecimal amount;
     private UUID walletid;
 

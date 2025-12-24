@@ -1,8 +1,8 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Service.Impl;
 
-import com.coinShiftProject.coinShiftProject.DTO.NotificationDTO;
-import com.coinShiftProject.coinShiftProject.Service.EmailService;
-import com.coinShiftProject.coinShiftProject.enums.CurrencyCode;
+import com.CurrencyExchange.CurrencyExchangeProject.DTO.NotificationDTO;
+import com.CurrencyExchange.CurrencyExchangeProject.Service.EmailService;
+import com.CurrencyExchange.CurrencyExchangeProject.enums.CurrencyCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.awspring.cloud.sqs.annotation.SqsListener;

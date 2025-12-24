@@ -1,15 +1,15 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Service.Impl;
 
-import com.coinShiftProject.coinShiftProject.DTO.*;
-import com.coinShiftProject.coinShiftProject.Entity.Transaction;
-import com.coinShiftProject.coinShiftProject.Entity.User;
-import com.coinShiftProject.coinShiftProject.Entity.Wallet;
-import com.coinShiftProject.coinShiftProject.Repository.TransactionRepository;
-import com.coinShiftProject.coinShiftProject.Repository.UserRepository;
-import com.coinShiftProject.coinShiftProject.Repository.WalletRepository;
-import com.coinShiftProject.coinShiftProject.Service.TransactionService;
-import com.coinShiftProject.coinShiftProject.enums.PaymentStatus;
-import com.coinShiftProject.coinShiftProject.enums.TransactionType;
+import com.CurrencyExchange.CurrencyExchangeProject.DTO.*;
+import com.CurrencyExchange.CurrencyExchangeProject.Entity.Transaction;
+import com.CurrencyExchange.CurrencyExchangeProject.Entity.User;
+import com.CurrencyExchange.CurrencyExchangeProject.Entity.Wallet;
+import com.CurrencyExchange.CurrencyExchangeProject.Repository.TransactionRepository;
+import com.CurrencyExchange.CurrencyExchangeProject.Repository.UserRepository;
+import com.CurrencyExchange.CurrencyExchangeProject.Repository.WalletRepository;
+import com.CurrencyExchange.CurrencyExchangeProject.Service.TransactionService;
+import com.CurrencyExchange.CurrencyExchangeProject.enums.PaymentStatus;
+import com.CurrencyExchange.CurrencyExchangeProject.enums.TransactionType;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,6 +23,10 @@ import java.util.UUID;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
+
+    private static final BigDecimal SAME_CURRENCY_FEE = BigDecimal.TEN;
+    private static final BigDecimal CROSS_CURRENCY_FEE = BigDecimal.valueOf(50);
+
 
     @Autowired
     private UserRepository userRepository;
@@ -40,9 +44,9 @@ public class TransactionServiceImpl implements TransactionService {
     private NotificationProducer notificationProducer;
 
 
-    public void handleSameCurrency(sendMoneyDTO sendMoneyDTO,User sender,Wallet senderWallet,Wallet receiverWallet ) {
+    public void handleSameCurrency(SendMoneyDTO sendMoneyDTO,User sender,Wallet senderWallet,Wallet receiverWallet ) {
 
-        BigDecimal fees =BigDecimal.valueOf(10);
+        BigDecimal fees =SAME_CURRENCY_FEE;
         BigDecimal debit =fees.add(sendMoneyDTO.getSenderAmount());
         if(senderWallet.getBalance().compareTo(debit)<0){
             throw new RuntimeException("Insufficient balance");
@@ -86,7 +90,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    public void handleDifferentCurrency(sendMoneyDTO req,User sender,Wallet senderWallet,Wallet receiverWallet){
+    public void handleDifferentCurrency(SendMoneyDTO req,User sender,Wallet senderWallet,Wallet receiverWallet){
         String sendCurrency=senderWallet.getCurrencyCode().toString();
         String recieverCurrency=receiverWallet.getCurrencyCode().toString();
 
@@ -100,7 +104,7 @@ public class TransactionServiceImpl implements TransactionService {
         BigDecimal exchangeRate = new BigDecimal(rate);
 
 
-        BigDecimal fees=BigDecimal.valueOf(50);
+        BigDecimal fees=CROSS_CURRENCY_FEE;
         BigDecimal creditAmount =req.getSenderAmount().multiply(exchangeRate);
         BigDecimal debitAmount =req.getSenderAmount().add(fees);
         if(senderWallet.getBalance().compareTo(debitAmount)<0){
@@ -147,7 +151,11 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public String rechargeWallet(rechargeWalletDTO req,Authentication authentication){
+    public String rechargeWallet(RechargeWalletDTO req,Authentication authentication){
+
+        if (req.getAmount() == null || req.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Invalid amount");
+        }
 
         String email=authentication.getName();
         System.out.println(req.getWalletid());
@@ -157,14 +165,7 @@ public class TransactionServiceImpl implements TransactionService {
             throw new RuntimeException("Unauthorized wallet access");
         }
 
-        if (req.getAmount() == null || req.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Invalid amount");
-        }
-
         BigDecimal finalamount=req.getAmount();
-        if(finalamount.compareTo(BigDecimal.ZERO) <= 0){
-            throw new RuntimeException("Recharge amount should be greate than zero.");
-        }
 
         Transaction tx = Transaction.builder()
                 .senderAmount(finalamount)
@@ -204,7 +205,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public String convertCurrency(sendMoneyDTO req, Authentication authentication){
+    public String convertCurrency(SendMoneyDTO req, Authentication authentication){
         String email=authentication.getName();
 
         User user=(User) userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
@@ -293,13 +294,15 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Transactional
-    public String sendMoney(sendMoneyDTO req, Authentication auth) {
+    public String sendMoney(SendMoneyDTO req, Authentication auth) {
 
         String email=auth.getName();
-        User sender= (User) userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
+        User sender= userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
 
-        Wallet from =walletRepository.getReferenceById(req.getFromWalletId());
-        Wallet to = walletRepository.getReferenceById(req.getToWalletId());
+        Wallet from = walletRepository.findById(req.getFromWalletId())
+                .orElseThrow(() -> new RuntimeException("Sender wallet not found"));
+        Wallet to = walletRepository.findById(req.getToWalletId())
+                .orElseThrow(() -> new RuntimeException("Receiver wallet not found"));
 
         if(!sender.getId().equals(from.getUser().getId())){
             throw new RuntimeException("Given sender wallet does not belongs to you");

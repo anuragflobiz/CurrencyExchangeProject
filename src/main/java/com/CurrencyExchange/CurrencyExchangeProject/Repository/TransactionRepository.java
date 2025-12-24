@@ -1,7 +1,8 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Repository;
 
-import com.coinShiftProject.coinShiftProject.DTO.TransactionResponseDTO;
-import com.coinShiftProject.coinShiftProject.Entity.Transaction;
+
+import com.CurrencyExchange.CurrencyExchangeProject.Entity.Transaction;
+import com.CurrencyExchange.CurrencyExchangeProject.DTO.TransactionResponseDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -13,7 +14,7 @@ import java.util.UUID;
 public interface TransactionRepository extends JpaRepository<Transaction,UUID>{
 
     @Query("""
-        SELECT new com.coinShiftProject.coinShiftProject.DTO.TransactionResponseDTO(
+        SELECT new com.CurrencyExchange.CurrencyExchange.DTO.TransactionResponseDTO(
             CASE
                 WHEN t.senderUser.id = :id THEN t.receiverUser.name
                 ELSE t.senderUser.name
