@@ -1,7 +1,8 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Cron;
 
-import com.coinShiftProject.coinShiftProject.Service.FetchExchangeRate;
-import com.coinShiftProject.coinShiftProject.enums.CurrencyCode;
+import com.CurrencyExchange.CurrencyExchange.Service.FetchExchangeRate;
+import com.CurrencyExchange.CurrencyExchange.enums.CurrencyCode;
+import com.CurrencyExchange.CurrencyExchangeProject.Service.FetchExchangeRateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,7 +16,7 @@ import java.util.Map;
 @Component
 public class ExchangeRateCron {
     @Autowired
-    private FetchExchangeRate exchangeRateService;
+    private FetchExchangeRateService exchangeRateService;
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
