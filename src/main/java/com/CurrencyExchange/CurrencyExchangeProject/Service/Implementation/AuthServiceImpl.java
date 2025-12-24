@@ -1,15 +1,12 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Service.Implementation;
 
-import com.coinShiftProject.coinShiftProject.DTO.ChangePasswordDTO;
-import com.coinShiftProject.coinShiftProject.DTO.ForgotPasswordDTO;
-import com.coinShiftProject.coinShiftProject.DTO.LoginResponse;
-import com.coinShiftProject.coinShiftProject.DTO.createUserDTO;
-import com.coinShiftProject.coinShiftProject.Entity.User;
-import com.coinShiftProject.coinShiftProject.Repository.UserRepository;
-import com.coinShiftProject.coinShiftProject.Security.JwtUtil;
-import com.coinShiftProject.coinShiftProject.Service.AuthService;
-import com.coinShiftProject.coinShiftProject.Service.EmailService;
-import com.coinShiftProject.coinShiftProject.enums.OtpPurpose;
+
+import com.CurrencyExchange.CurrencyExchangeProject.DTO.LoginResponse;
+import com.CurrencyExchange.CurrencyExchangeProject.DTO.createUserDTO;
+import com.CurrencyExchange.CurrencyExchangeProject.Repository.UserRepository;
+import com.CurrencyExchange.CurrencyExchangeProject.Security.JwtUtil;
+import com.CurrencyExchange.CurrencyExchangeProject.Service.AuthService;
+import com.CurrencyExchange.CurrencyExchangeProject.Service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
