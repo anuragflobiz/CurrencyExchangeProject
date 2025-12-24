@@ -1,13 +1,8 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Service.Impl;
 
 
-import com.coinShiftProject.coinShiftProject.DTO.WalletResponse;
-import com.coinShiftProject.coinShiftProject.Entity.User;
-import com.coinShiftProject.coinShiftProject.Entity.Wallet;
-import com.coinShiftProject.coinShiftProject.Repository.UserRepository;
-import com.coinShiftProject.coinShiftProject.Repository.WalletRepository;
-import com.coinShiftProject.coinShiftProject.Service.WalletService;
-import com.coinShiftProject.coinShiftProject.enums.CurrencyCode;
+import com.CurrencyExchange.CurrencyExchangeProject.Repository.WalletRepository;
+import com.CurrencyExchange.CurrencyExchangeProject.Service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
@@ -26,13 +21,11 @@ public class WalletServiceImpl implements WalletService {
     @Autowired
     private WalletRepository walletRepository;
 
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
 
     @Override
     public String create(CurrencyCode currencyCode, Authentication authentication) {
-        String email=authentication.getPrincipal().toString();
-        User user= (User) userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
+        String email = authentication.getName();
+        User user= userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
         if(walletRepository.findByUserIdAndCurrencyCode(user.getId(),currencyCode).isPresent()){
             throw new RuntimeException("User already have wallet with this currency");
         }
@@ -48,19 +41,18 @@ public class WalletServiceImpl implements WalletService {
     public String deleteWallet(UUID wallet_id, Authentication authentication) {
         String email=authentication.getName();
 
-        User user =walletRepository.findUserByWalletId(wallet_id);
-        if(!user.getEmail().equals(email)){
-            throw new RuntimeException("Given wallet does not belongs to you");
-        }
+        Wallet wallet = walletRepository.findById(wallet_id)
+                .orElseThrow(() -> new RuntimeException("Wallet not found"));
 
-        Wallet wallet=walletRepository.findById(wallet_id).orElseThrow(()->new
-                RuntimeException("Wallet does not found with given Id"));
+        if (!wallet.getUser().getEmail().equals(email)) {
+            throw new RuntimeException("Wallet does not belong to you");
+        }
 
         if (wallet.getBalance().compareTo(BigDecimal.ZERO) != 0) {
             throw new RuntimeException("You have balance in your account before deletion you have to transfer all balance to some other wallet or any one else");
         }
 
-        walletRepository.deleteById(wallet_id);
+        walletRepository.delete(wallet);
         return "wallet deleted successfully";
     }
 
