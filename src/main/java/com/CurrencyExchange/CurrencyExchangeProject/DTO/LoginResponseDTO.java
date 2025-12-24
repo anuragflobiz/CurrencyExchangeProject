@@ -8,9 +8,7 @@ import lombok.*;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginReq {
-    private String email;
-    private String password;
-
-
+public class LoginResponseDTO {
+    private String message;
+    private String token;
 }

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface AuthService {
-    public String sendOtp(String email, OtpPurpose cause);
+    public String sendOtp(String email, OtpPurpose purpose);
 
     public String create(createUserDTO user);
 
