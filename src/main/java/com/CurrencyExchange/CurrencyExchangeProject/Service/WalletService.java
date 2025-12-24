@@ -1,7 +1,7 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Service;
 
-import com.coinShiftProject.coinShiftProject.DTO.WalletResponse;
-import com.coinShiftProject.coinShiftProject.enums.CurrencyCode;
+import com.CurrencyExchange.CurrencyExchangeProject.DTO.WalletResponseDTO;
+import com.CurrencyExchange.CurrencyExchangeProject.enums.CurrencyCode;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
@@ -12,6 +12,6 @@ public interface WalletService {
 
     public String deleteWallet(UUID wallet_id, Authentication authentication);
 
-    public List<WalletResponse> showWallets(CurrencyCode currencyCode, Authentication authentication);
+    public List<WalletResponseDTO> showWallets(CurrencyCode currencyCode, Authentication authentication);
 
 }
