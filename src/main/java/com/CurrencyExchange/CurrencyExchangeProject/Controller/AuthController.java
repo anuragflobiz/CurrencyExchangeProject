@@ -4,6 +4,7 @@ package com.CurrencyExchange.CurrencyExchangeProject.Controller;
 import com.CurrencyExchange.CurrencyExchangeProject.DTO.*;
 import com.CurrencyExchange.CurrencyExchangeProject.Service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,18 +21,18 @@ public class AuthController {
     @Autowired private AuthService authService;
 
     @PostMapping("/otp")
-    public String sendOtp(@RequestBody OtpRequestDTO otpRequestDTO) {
+    public String sendOtp(@Valid @RequestBody OtpRequestDTO otpRequestDTO) {
 
         return authService.sendOtp(otpRequestDTO.getEmail(), otpRequestDTO.getPurpose());
     }
 
     @PostMapping("/signup")
-    public String signup(@RequestBody CreateUserDTO createUserDTO) {
+    public String signup(@Valid @RequestBody CreateUserDTO createUserDTO) {
         return authService.create(createUserDTO);
     }
 
     @PostMapping("/login")
-    public LoginResponseDTO login(@RequestBody LoginRequestDTO loginRequestDTO) {
+    public LoginResponseDTO login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
         return authService.login(loginRequestDTO.getEmail(), loginRequestDTO.getPassword());
     }
 
@@ -49,12 +50,12 @@ public class AuthController {
     }
 
     @PostMapping("/change-password")
-    public String changePassword(@RequestBody ChangePasswordDTO changePasswordDTO, Authentication authentication) {
+    public String changePassword(@Valid @RequestBody ChangePasswordDTO changePasswordDTO, Authentication authentication) {
         return authService.changePassword(changePasswordDTO, authentication);
     }
 
     @PostMapping("/forgot-password")
-    public String forgotPassword(@RequestBody ForgotPasswordDTO forgotPasswordDTO) {
+    public String forgotPassword(@Valid @RequestBody ForgotPasswordDTO forgotPasswordDTO) {
         return authService.forgotPassword(forgotPasswordDTO);
     }
 
