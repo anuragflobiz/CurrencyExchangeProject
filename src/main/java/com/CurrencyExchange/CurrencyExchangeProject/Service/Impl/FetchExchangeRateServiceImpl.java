@@ -36,7 +36,7 @@ public class FetchExchangeRateServiceImpl implements FetchExchangeRateService {
                     ));
 
         } catch (Exception e) {
-            throw new ExchangeRateFetchException(
+            throw new RuntimeException(
                     "Failed to fetch exchange rates for base " + base, e
             );
         }

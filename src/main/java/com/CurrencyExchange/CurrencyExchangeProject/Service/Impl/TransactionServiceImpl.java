@@ -49,7 +49,7 @@ public class TransactionServiceImpl implements TransactionService {
         BigDecimal fees =SAME_CURRENCY_FEE;
         BigDecimal debit =fees.add(sendMoneyDTO.getSenderAmount());
         if(senderWallet.getBalance().compareTo(debit)<0){
-            throw new RuntimeException("Insufficient balance");
+            throw new BadRequestException("Insufficient balance");
         }
 
         Transaction tx = Transaction.builder()
@@ -98,7 +98,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .get("RATE:"+sendCurrency+":"+recieverCurrency);
 
         if (rate == null) {
-            throw new RuntimeException("Exchange rate not available");
+            throw new ExchangeRateFetchException("Exchange rate not available");
         }
 
         BigDecimal exchangeRate = new BigDecimal(rate);
@@ -108,7 +108,7 @@ public class TransactionServiceImpl implements TransactionService {
         BigDecimal creditAmount =req.getSenderAmount().multiply(exchangeRate);
         BigDecimal debitAmount =req.getSenderAmount().add(fees);
         if(senderWallet.getBalance().compareTo(debitAmount)<0){
-            throw new RuntimeException("Insufficient balance");
+            throw new ExchangeRateFetchException("Insufficient balance");
         }
 
         Transaction tx = Transaction.builder()
@@ -154,15 +154,15 @@ public class TransactionServiceImpl implements TransactionService {
     public String rechargeWallet(RechargeWalletDTO req,Authentication authentication){
 
         if (req.getAmount() == null || req.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Invalid amount");
+            throw new BadRequestException("Invalid amount");
         }
 
         String email=authentication.getName();
         System.out.println(req.getWalletid());
-        Wallet wallet=walletRepository.findById(req.getWalletid()).orElseThrow(()->new RuntimeException("Wallet Does not found"));
-        User user= (User) userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
+        Wallet wallet=walletRepository.findById(req.getWalletid()).orElseThrow(()->new WalletNotFoundException("Wallet Does not found"));
+        User user= (User) userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found"));
         if (!wallet.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized wallet access");
+            throw new UnauthorizedAccessException("Unauthorized wallet access");
         }
 
         BigDecimal finalamount=req.getAmount();
@@ -208,25 +208,25 @@ public class TransactionServiceImpl implements TransactionService {
     public String convertCurrency(SendMoneyDTO req, Authentication authentication){
         String email=authentication.getName();
 
-        User user=(User) userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
-        Wallet sendWallet=walletRepository.findById(req.getFromWalletId()).orElseThrow(()->new RuntimeException("Sender wallet not found"));
-        Wallet recieverWallet=walletRepository.findById(req.getToWalletId()).orElseThrow(()->new RuntimeException("Reciever wallet not found"));
+        User user=(User) userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found"));
+        Wallet sendWallet=walletRepository.findById(req.getFromWalletId()).orElseThrow(()->new WalletNotFoundException("Sender wallet not found"));
+        Wallet recieverWallet=walletRepository.findById(req.getToWalletId()).orElseThrow(()->new WalletNotFoundException("Reciever wallet not found"));
         if(sendWallet.getCurrencyCode().equals(recieverWallet.getCurrencyCode())){
-            throw new RuntimeException("Both wallets have same currency, conversion not required");
+            throw new BadRequestException("Both wallets have same currency, conversion not required");
         }
 
         if (!sendWallet.getUser().getId().equals(user.getId()) ||
                 !recieverWallet.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized wallet access");
+            throw new UnauthorizedAccessException("Unauthorized wallet access");
         }
 
         BigDecimal senderAmount = req.getSenderAmount();
         if (senderAmount == null || senderAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Amount must be greater than zero");
+            throw new BadRequestException("Amount must be greater than zero");
         }
 
         if(sendWallet.getBalance().compareTo(senderAmount)<0){
-            throw new RuntimeException("Insufficient Balance");
+            throw new BadRequestException("Insufficient Balance");
         }
 
         String sendCurrency=sendWallet.getCurrencyCode().toString();
@@ -235,7 +235,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .get("RATE:"+sendCurrency+":"+recieverCurrency);
 
         if (rate == null) {
-            throw new RuntimeException("Exchange rate not available");
+            throw new ExchangeRateFetchException("Exchange rate not available");
         }
 
         BigDecimal exchangeRate = new BigDecimal(rate);
@@ -282,7 +282,7 @@ public class TransactionServiceImpl implements TransactionService {
     public ResponseEntity<List<TransactionResponseDTO>> getAllTransaction(Authentication auth) {
 
         User user = (User) userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         UUID userId=user.getId();
         List<TransactionResponseDTO> txs =
@@ -297,15 +297,15 @@ public class TransactionServiceImpl implements TransactionService {
     public String sendMoney(SendMoneyDTO req, Authentication auth) {
 
         String email=auth.getName();
-        User sender= userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
+        User sender= userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found"));
 
         Wallet from = walletRepository.findById(req.getFromWalletId())
-                .orElseThrow(() -> new RuntimeException("Sender wallet not found"));
+                .orElseThrow(() -> new WalletNotFoundException("Sender wallet not found"));
         Wallet to = walletRepository.findById(req.getToWalletId())
-                .orElseThrow(() -> new RuntimeException("Receiver wallet not found"));
+                .orElseThrow(() -> new WalletNotFoundException("Receiver wallet not found"));
 
         if(!sender.getId().equals(from.getUser().getId())){
-            throw new RuntimeException("Given sender wallet does not belongs to you");
+            throw new UnauthorizedAccessException("Given sender wallet does not belongs to you");
         }
 
         if (from.getCurrencyCode().equals(to.getCurrencyCode())) {
