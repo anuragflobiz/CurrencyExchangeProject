@@ -30,9 +30,9 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public String create(CurrencyCode currencyCode, Authentication authentication) {
         String email = authentication.getName();
-        User user= userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
+        User user= userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found"));
         if(walletRepository.findByUserIdAndCurrencyCode(user.getId(),currencyCode).isPresent()){
-            throw new RuntimeException("User already have wallet with this currency");
+            throw new BadRequestException("User already have wallet with this currency");
         }
         Wallet w=new Wallet();
         w.setCurrencyCode(currencyCode);
@@ -48,14 +48,14 @@ public class WalletServiceImpl implements WalletService {
         String email=authentication.getName();
 
         Wallet wallet = walletRepository.findById(wallet_id)
-                .orElseThrow(() -> new RuntimeException("Wallet not found"));
+                .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
 
         if (!wallet.getUser().getEmail().equals(email)) {
-            throw new RuntimeException("Wallet does not belong to you");
+            throw new UnauthorizedAccessException("Wallet does not belong to you");
         }
 
         if (wallet.getBalance().compareTo(BigDecimal.ZERO) != 0) {
-            throw new RuntimeException("You have balance in your account before deletion you have to transfer all balance to some other wallet or any one else");
+            throw new BadRequestException("You have balance in your account before deletion you have to transfer all balance to some other wallet or any one else");
         }
 
         walletRepository.delete(wallet);
@@ -66,12 +66,12 @@ public class WalletServiceImpl implements WalletService {
     public List<WalletResponseDTO> showWallets(CurrencyCode currencyCode, Authentication authentication) {
         String email = authentication.getName();
         User loggedUser = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (currencyCode != null) {
             Wallet wallet = walletRepository
                     .findByUserIdAndCurrencyCode(loggedUser.getId(), currencyCode)
-                    .orElseThrow(() -> new RuntimeException("Wallet not found"));
+                    .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
 
             return List.of(
                     new WalletResponseDTO(wallet.getId(), wallet.getCurrencyCode(), wallet.getBalance())
