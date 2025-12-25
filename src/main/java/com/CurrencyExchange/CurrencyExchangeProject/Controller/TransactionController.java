@@ -20,17 +20,17 @@ public class TransactionController {
 
 
     @PostMapping("/transfers")
-    public ResponseEntity<String> transfer(@RequestBody SendMoneyDTO req, Authentication authentication){
+    public ResponseEntity<String> transfer(@Valid @RequestBody SendMoneyDTO req, Authentication authentication){
         return ResponseEntity.ok(transactionService.sendMoney(req,authentication));
     }
 
     @PostMapping("/recharges")
-    public ResponseEntity<String> recharge(@RequestBody RechargeWalletDTO req, Authentication authentication){
+    public ResponseEntity<String> recharge(@Valid @RequestBody RechargeWalletDTO req, Authentication authentication){
         return ResponseEntity.ok(transactionService.rechargeWallet(req,authentication));
     }
 
     @PostMapping("/conversions")
-    public ResponseEntity<String>conversion(@RequestBody SendMoneyDTO req,Authentication authentication){
+    public ResponseEntity<String>conversion(@Valid @RequestBody SendMoneyDTO req,Authentication authentication){
         return ResponseEntity.ok(transactionService.convertCurrency(req,authentication));
     }
 
