@@ -20,19 +20,19 @@ public class AuthController {
     @Autowired private AuthService authService;
 
     @PostMapping("/otp")
-    public String sendOtp(@RequestBody OtpRequestDTO req) {
+    public String sendOtp(@RequestBody OtpRequestDTO otpRequestDTO) {
 
-        return authService.sendOtp(req.getEmail(), req.getPurpose());
+        return authService.sendOtp(otpRequestDTO.getEmail(), otpRequestDTO.getPurpose());
     }
 
     @PostMapping("/signup")
-    public String signup(@RequestBody CreateUserDTO dto) {
-        return authService.create(dto);
+    public String signup(@RequestBody CreateUserDTO createUserDTO) {
+        return authService.create(createUserDTO);
     }
 
     @PostMapping("/auth/login")
-    public LoginResponseDTO login(@RequestBody LoginRequestDTO req) {
-        return authService.login(req.getEmail(), req.getPassword());
+    public LoginResponseDTO login(@RequestBody LoginRequestDTO loginRequestDTO) {
+        return authService.login(loginRequestDTO.getEmail(), loginRequestDTO.getPassword());
     }
 
     @PostMapping("/auth/logout")
@@ -49,13 +49,13 @@ public class AuthController {
     }
 
     @PostMapping("/auth/change-password")
-    public String changePassword(@RequestBody ChangePasswordDTO req, Authentication authentication) {
-        return authService.changePassword(req, authentication);
+    public String changePassword(@RequestBody ChangePasswordDTO changePasswordDTO, Authentication authentication) {
+        return authService.changePassword(changePasswordDTO, authentication);
     }
 
     @PostMapping("/auth/forgot-password")
-    public String forgotPassword(@RequestBody ForgotPasswordDTO req) {
-        return authService.forgotPassword(req);
+    public String forgotPassword(@RequestBody ForgotPasswordDTO forgotPasswordDTO) {
+        return authService.forgotPassword(forgotPasswordDTO);
     }
 
 
