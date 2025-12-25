@@ -1,8 +1,12 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Service.Implementation;
 
 
+import com.CurrencyExchange.CurrencyExchangeProject.DTO.ChangePasswordDTO;
+import com.CurrencyExchange.CurrencyExchangeProject.DTO.ForgotPasswordDTO;
 import com.CurrencyExchange.CurrencyExchangeProject.DTO.LoginResponseDTO;
 import com.CurrencyExchange.CurrencyExchangeProject.DTO.CreateUserDTO;
+import com.CurrencyExchange.CurrencyExchangeProject.Exceptions.BadRequestException;
+import com.CurrencyExchange.CurrencyExchangeProject.Exceptions.UserNotFoundException;
 import com.CurrencyExchange.CurrencyExchangeProject.Repository.UserRepository;
 import com.CurrencyExchange.CurrencyExchangeProject.Security.JwtUtil;
 import com.CurrencyExchange.CurrencyExchangeProject.Service.AuthService;
@@ -34,10 +38,10 @@ public class AuthServiceImpl implements AuthService {
         boolean exists = userRepo.findByEmail(email).isPresent();
 
         if (purpose == OtpPurpose.SIGNUP && exists)
-            throw new RuntimeException("User already exists");
+            throw new BadRequestException("User already exists");
 
         if (purpose == OtpPurpose.FORGOT_PASSWORD && !exists)
-            throw new RuntimeException("User not found");
+            throw new UserNotFoundException("User not found");
 
         String key = "OTP:" + purpose + ":" + email;
 
@@ -57,8 +61,8 @@ public class AuthServiceImpl implements AuthService {
         String key = "OTP:SIGNUP:" + req.getEmail();
         String savedOtp = redisTemplate.opsForValue().get(key);
 
-        if (savedOtp == null) throw new RuntimeException("OTP expired");
-        if (!savedOtp.equals(req.getOtp())) throw new RuntimeException("Invalid OTP");
+        if (savedOtp == null) throw new BadRequestException("OTP expired");
+        if (!savedOtp.equals(req.getOtp())) throw new BadRequestException("Invalid OTP");
 
         User user = new User();
         user.setEmail(req.getEmail());
@@ -77,10 +81,10 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponseDTO login(String email, String password) {
 
         User user = (User) userRepo.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(password, user.getPassword()))
-            throw new RuntimeException("Invalid credentials");
+            throw new BadRequestException("Invalid credentials");
 
         String token = jwtUtil.generateToken(user.getId(), email);
         return new LoginResponseDTO("Login successful", token);
@@ -94,22 +98,22 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String changePassword(ChangePasswordDTO req, Authentication auth) {
+    public String changePassword(ChangePasswordDTO changePasswordDTO, Authentication auth) {
 
         String email = auth.getName();
 
         User user = (User) userRepo.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if (!passwordEncoder.matches(req.getOldPassword(), user.getPassword())) {
-            throw new RuntimeException("Old password is incorrect");
+        if (!passwordEncoder.matches(changePasswordDTO.getOldPassword(), user.getPassword())) {
+            throw new BadRequestException("Old password is incorrect");
         }
 
-        if (passwordEncoder.matches(req.getNewPassword(), user.getPassword())) {
-            throw new RuntimeException("New password cannot be same as old password");
+        if (passwordEncoder.matches(changePasswordDTO.getNewPassword(), user.getPassword())) {
+            throw new BadRequestException("New password cannot be same as old password");
         }
 
-        user.setPassword(passwordEncoder.encode(req.getNewPassword()));
+        user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
         userRepo.save(user);
 
         return "Password changed successfully";
@@ -117,27 +121,27 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public String forgotPassword(ForgotPasswordDTO req) {
+    public String forgotPassword(ForgotPasswordDTO forgotPasswordDTO) {
 
-        User user =(User) userRepo.findByEmail(req.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user =(User) userRepo.findByEmail(forgotPasswordDTO.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        String key = "OTP:FORGOT_PASSWORD:" + req.getEmail();
+        String key = "OTP:FORGOT_PASSWORD:" + forgotPasswordDTO.getEmail();
         String savedOtp = redisTemplate.opsForValue().get(key);
 
         if (savedOtp == null) {
             throw new RuntimeException("OTP expired");
         }
 
-        if (!savedOtp.equals(req.getOtp())) {
-            throw new RuntimeException("Invalid OTP");
+        if (!savedOtp.equals(forgotPasswordDTO.getOtp())) {
+            throw new BadRequestException("Invalid OTP");
         }
 
-        if (passwordEncoder.matches(req.getNewPassword(), user.getPassword())) {
-            throw new RuntimeException("New password cannot be same as old password");
+        if (passwordEncoder.matches(forgotPasswordDTO.getNewPassword(), user.getPassword())) {
+            throw new BadRequestException("New password cannot be same as old password");
         }
 
-        user.setPassword(passwordEncoder.encode(req.getNewPassword()));
+        user.setPassword(passwordEncoder.encode(forgotPasswordDTO.getNewPassword()));
         userRepo.save(user);
 
         redisTemplate.delete(key);
