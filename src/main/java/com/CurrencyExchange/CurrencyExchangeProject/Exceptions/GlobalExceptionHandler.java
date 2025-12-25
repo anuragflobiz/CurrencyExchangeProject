@@ -36,9 +36,9 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong");
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleexchangeRateFetch(Exception ex) {
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+    @ExceptionHandler(ExchangeRateFetchException.class)
+    public ResponseEntity<?> handleExchangeRateFetch(ExchangeRateFetchException ex) {
+        return build(HttpStatus.BAD_GATEWAY, ex.getMessage());
     }
 
     private ResponseEntity<?> build(HttpStatus status, String message) {

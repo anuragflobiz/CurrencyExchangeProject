@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     @Autowired private AuthService authService;
@@ -30,12 +30,12 @@ public class AuthController {
         return authService.create(createUserDTO);
     }
 
-    @PostMapping("/auth/login")
+    @PostMapping("/login")
     public LoginResponseDTO login(@RequestBody LoginRequestDTO loginRequestDTO) {
         return authService.login(loginRequestDTO.getEmail(), loginRequestDTO.getPassword());
     }
 
-    @PostMapping("/auth/logout")
+    @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
 
@@ -48,12 +48,12 @@ public class AuthController {
         return ResponseEntity.ok("Logged out successfully");
     }
 
-    @PostMapping("/auth/change-password")
+    @PostMapping("/change-password")
     public String changePassword(@RequestBody ChangePasswordDTO changePasswordDTO, Authentication authentication) {
         return authService.changePassword(changePasswordDTO, authentication);
     }
 
-    @PostMapping("/auth/forgot-password")
+    @PostMapping("/forgot-password")
     public String forgotPassword(@RequestBody ForgotPasswordDTO forgotPasswordDTO) {
         return authService.forgotPassword(forgotPasswordDTO);
     }
