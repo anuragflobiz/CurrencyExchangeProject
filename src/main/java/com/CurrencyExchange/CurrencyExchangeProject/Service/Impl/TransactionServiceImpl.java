@@ -11,7 +11,7 @@ import com.CurrencyExchange.CurrencyExchangeProject.Service.TransactionService;
 import com.CurrencyExchange.CurrencyExchangeProject.enums.PaymentStatus;
 import com.CurrencyExchange.CurrencyExchangeProject.enums.TransactionType;
 import jakarta.transaction.Transactional;
-import org.apache.coyote.BadRequestException;
+import com.CurrencyExchange.CurrencyExchangeProject.Exceptions.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
@@ -311,6 +311,10 @@ public class TransactionServiceImpl implements TransactionService {
 
         if(!sender.getId().equals(from.getUser().getId())){
             throw new UnauthorizedAccessException("Given sender wallet does not belongs to you");
+        }
+
+        if (from.getId().equals(to.getId())) {
+            throw new BadRequestException("Cannot transfer to same wallet");
         }
 
         if (from.getCurrencyCode().equals(to.getCurrencyCode())) {
