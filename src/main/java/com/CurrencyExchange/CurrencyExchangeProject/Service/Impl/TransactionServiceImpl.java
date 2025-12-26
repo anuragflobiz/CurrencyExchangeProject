@@ -151,21 +151,21 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public String rechargeWallet(RechargeWalletDTO req,Authentication authentication){
+    public String rechargeWallet(RechargeWalletDTO rechargeWalletDTO,Authentication authentication){
 
-        if (req.getAmount() == null || req.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (rechargeWalletDTO.getAmount() == null || rechargeWalletDTO.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new BadRequestException("Invalid amount");
         }
 
         String email=authentication.getName();
-        System.out.println(req.getWalletid());
-        Wallet wallet=walletRepository.findById(req.getWalletid()).orElseThrow(()->new WalletNotFoundException("Wallet Does not found"));
-        User user= (User) userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found"));
+        System.out.println(rechargeWalletDTO.getWalletid());
+        Wallet wallet=walletRepository.findById(rechargeWalletDTO.getWalletid()).orElseThrow(()->new WalletNotFoundException("Wallet Does not found"));
+        User user= userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found"));
         if (!wallet.getUser().getId().equals(user.getId())) {
             throw new UnauthorizedAccessException("Unauthorized wallet access");
         }
 
-        BigDecimal finalamount=req.getAmount();
+        BigDecimal finalamount=rechargeWalletDTO.getAmount();
 
         Transaction tx = Transaction.builder()
                 .senderAmount(finalamount)
@@ -205,12 +205,12 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public String convertCurrency(SendMoneyDTO req, Authentication authentication){
+    public String convertCurrency(SendMoneyDTO sendMoneyDTO, Authentication authentication){
         String email=authentication.getName();
 
-        User user=(User) userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found"));
-        Wallet sendWallet=walletRepository.findById(req.getFromWalletId()).orElseThrow(()->new WalletNotFoundException("Sender wallet not found"));
-        Wallet recieverWallet=walletRepository.findById(req.getToWalletId()).orElseThrow(()->new WalletNotFoundException("Reciever wallet not found"));
+        User user=userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found"));
+        Wallet sendWallet=walletRepository.findById(sendMoneyDTO.getFromWalletId()).orElseThrow(()->new WalletNotFoundException("Sender wallet not found"));
+        Wallet recieverWallet=walletRepository.findById(sendMoneyDTO.getToWalletId()).orElseThrow(()->new WalletNotFoundException("Reciever wallet not found"));
         if(sendWallet.getCurrencyCode().equals(recieverWallet.getCurrencyCode())){
             throw new BadRequestException("Both wallets have same currency, conversion not required");
         }
@@ -220,7 +220,7 @@ public class TransactionServiceImpl implements TransactionService {
             throw new UnauthorizedAccessException("Unauthorized wallet access");
         }
 
-        BigDecimal senderAmount = req.getSenderAmount();
+        BigDecimal senderAmount = sendMoneyDTO.getSenderAmount();
         if (senderAmount == null || senderAmount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BadRequestException("Amount must be greater than zero");
         }
@@ -279,9 +279,9 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public ResponseEntity<List<TransactionResponseDTO>> getAllTransaction(Authentication auth) {
+    public ResponseEntity<List<TransactionResponseDTO>> getAllTransaction(Authentication authentication) {
 
-        User user = (User) userRepository.findByEmail(auth.getName())
+        User user =userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         UUID userId=user.getId();
@@ -294,14 +294,14 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Transactional
-    public String sendMoney(SendMoneyDTO req, Authentication auth) {
+    public String sendMoney(SendMoneyDTO sendMoneyDTO, Authentication authentication) {
 
-        String email=auth.getName();
+        String email=authentication.getName();
         User sender= userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found"));
 
-        Wallet from = walletRepository.findById(req.getFromWalletId())
+        Wallet from = walletRepository.findById(sendMoneyDTO.getFromWalletId())
                 .orElseThrow(() -> new WalletNotFoundException("Sender wallet not found"));
-        Wallet to = walletRepository.findById(req.getToWalletId())
+        Wallet to = walletRepository.findById(sendMoneyDTO.getToWalletId())
                 .orElseThrow(() -> new WalletNotFoundException("Receiver wallet not found"));
 
         if(!sender.getId().equals(from.getUser().getId())){
@@ -309,9 +309,9 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         if (from.getCurrencyCode().equals(to.getCurrencyCode())) {
-            handleSameCurrency(req, sender, from, to);
+            handleSameCurrency(sendMoneyDTO, sender, from, to);
         } else {
-            handleDifferentCurrency(req, sender, from, to);
+            handleDifferentCurrency(sendMoneyDTO, sender, from, to);
         }
 
         return "Transaction successful";
