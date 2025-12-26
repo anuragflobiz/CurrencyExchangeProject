@@ -11,6 +11,7 @@ import com.CurrencyExchange.CurrencyExchangeProject.Service.TransactionService;
 import com.CurrencyExchange.CurrencyExchangeProject.enums.PaymentStatus;
 import com.CurrencyExchange.CurrencyExchangeProject.enums.TransactionType;
 import jakarta.transaction.Transactional;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
@@ -44,7 +45,8 @@ public class TransactionServiceImpl implements TransactionService {
     private NotificationProducer notificationProducer;
 
 
-    public void handleSameCurrency(SendMoneyDTO sendMoneyDTO,User sender,Wallet senderWallet,Wallet receiverWallet ) {
+    public void handleSameCurrency(SendMoneyDTO sendMoneyDTO,User sender,Wallet senderWallet,
+                                   Wallet receiverWallet ) {
 
         BigDecimal fees =SAME_CURRENCY_FEE;
         BigDecimal debit =fees.add(sendMoneyDTO.getSenderAmount());
@@ -90,7 +92,9 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    public void handleDifferentCurrency(SendMoneyDTO req,User sender,Wallet senderWallet,Wallet receiverWallet){
+    public void handleDifferentCurrency(SendMoneyDTO req,User sender,Wallet senderWallet,
+                                        Wallet receiverWallet){
+
         String sendCurrency=senderWallet.getCurrencyCode().toString();
         String recieverCurrency=receiverWallet.getCurrencyCode().toString();
 
@@ -108,7 +112,7 @@ public class TransactionServiceImpl implements TransactionService {
         BigDecimal creditAmount =req.getSenderAmount().multiply(exchangeRate);
         BigDecimal debitAmount =req.getSenderAmount().add(fees);
         if(senderWallet.getBalance().compareTo(debitAmount)<0){
-            throw new ExchangeRateFetchException("Insufficient balance");
+            throw new BadRequestException("Insufficient balance");
         }
 
         Transaction tx = Transaction.builder()
@@ -165,7 +169,7 @@ public class TransactionServiceImpl implements TransactionService {
             throw new UnauthorizedAccessException("Unauthorized wallet access");
         }
 
-        BigDecimal finalamount=rechargeWalletDTO.getAmount();
+        BigDecimal finalamount = rechargeWalletDTO.getAmount();
 
         Transaction tx = Transaction.builder()
                 .senderAmount(finalamount)
@@ -187,6 +191,7 @@ public class TransactionServiceImpl implements TransactionService {
             );
             walletRepository.save(wallet);
             tx.setPaymentStatus(PaymentStatus.SUCCESS);
+            transactionRepository.save(tx);
             notificationProducer.send(new NotificationDTO("CREDIT",
                     email, finalamount,
                     wallet.getCurrencyCode().toString(), tx.getCreatedAt(),
