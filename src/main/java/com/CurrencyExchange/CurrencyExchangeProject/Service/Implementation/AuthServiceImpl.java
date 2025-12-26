@@ -26,7 +26,7 @@ public class AuthServiceImpl implements AuthService {
     private static final int OTP_TTL_MIN = 5;
 
     @Autowired
-    private UserRepository userRepo;
+    private UserRepository userRepository;
     @Autowired private JwtUtil jwtUtil;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private EmailService emailService;
@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String sendOtp(String email, OtpPurpose purpose) {
 
-        boolean exists = userRepo.findByEmail(email).isPresent();
+        boolean exists = userRepository.findByEmail(email).isPresent();
 
         if (purpose == OtpPurpose.SIGNUP && exists)
             throw new BadRequestException("User already exists");
@@ -56,21 +56,21 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String create(CreateUserDTO req) {
+    public String create(CreateUserDTO createUserDTO) {
 
-        String key = "OTP:SIGNUP:" + req.getEmail();
+        String key = "OTP:SIGNUP:" + createUserDTO.getEmail();
         String savedOtp = redisTemplate.opsForValue().get(key);
 
         if (savedOtp == null) throw new BadRequestException("OTP expired");
-        if (!savedOtp.equals(req.getOtp())) throw new BadRequestException("Invalid OTP");
+        if (!savedOtp.equals(createUserDTO.getOtp())) throw new BadRequestException("Invalid OTP");
 
         User user = new User();
-        user.setEmail(req.getEmail());
-        user.setPassword(passwordEncoder.encode(req.getPassword()));
-        user.setName(req.getName());
-        user.setMobile(req.getPhone());
+        user.setEmail(createUserDTO.getEmail());
+        user.setPassword(passwordEncoder.encode(createUserDTO.getPassword()));
+        user.setName(createUserDTO.getName());
+        user.setMobile(createUserDTO.getPhone());
 
-        userRepo.save(user);
+        userRepository.save(user);
         redisTemplate.delete(key);
 
         return "User created successfully";
@@ -80,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponseDTO login(String email, String password) {
 
-        User user = (User) userRepo.findByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(password, user.getPassword()))
@@ -98,11 +98,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String changePassword(ChangePasswordDTO changePasswordDTO, Authentication auth) {
+    public String changePassword(ChangePasswordDTO changePasswordDTO, Authentication authentication) {
 
-        String email = auth.getName();
+        String email = authentication.getName();
 
-        User user = (User) userRepo.findByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(changePasswordDTO.getOldPassword(), user.getPassword())) {
@@ -114,7 +114,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
-        userRepo.save(user);
+        userRepository.save(user);
 
         return "Password changed successfully";
     }
@@ -123,7 +123,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String forgotPassword(ForgotPasswordDTO forgotPasswordDTO) {
 
-        User user =(User) userRepo.findByEmail(forgotPasswordDTO.getEmail())
+        User user =userRepository.findByEmail(forgotPasswordDTO.getEmail())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         String key = "OTP:FORGOT_PASSWORD:" + forgotPasswordDTO.getEmail();
@@ -142,7 +142,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         user.setPassword(passwordEncoder.encode(forgotPasswordDTO.getNewPassword()));
-        userRepo.save(user);
+        userRepository.save(user);
 
         redisTemplate.delete(key);
 
