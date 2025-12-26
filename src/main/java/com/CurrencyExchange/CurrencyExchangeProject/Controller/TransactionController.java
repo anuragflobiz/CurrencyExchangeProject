@@ -30,7 +30,7 @@ public class TransactionController {
     }
 
     @PostMapping("/conversions")
-    public ResponseEntity<String>conversion(@Valid @RequestBody SendMoneyDTO req,Authentication authentication){
+    public ResponseEntity<String> conversion(@Valid @RequestBody SendMoneyDTO req,Authentication authentication){
         return ResponseEntity.ok(transactionService.convertCurrency(req,authentication));
     }
 
@@ -38,7 +38,4 @@ public class TransactionController {
     public ResponseEntity<List<TransactionResponseDTO>> getMyTransactions(Authentication authentication){
         return transactionService.getAllTransaction(authentication);
     }
-
-
-
 }
