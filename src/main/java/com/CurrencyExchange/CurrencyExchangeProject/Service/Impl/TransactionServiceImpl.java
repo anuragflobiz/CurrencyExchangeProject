@@ -13,12 +13,14 @@ import com.CurrencyExchange.CurrencyExchangeProject.enums.TransactionType;
 import jakarta.transaction.Transactional;
 import com.CurrencyExchange.CurrencyExchangeProject.Exceptions.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,8 +47,7 @@ public class TransactionServiceImpl implements TransactionService {
     private NotificationProducer notificationProducer;
 
 
-    public void handleSameCurrency(SendMoneyDTO sendMoneyDTO,User sender,Wallet senderWallet,
-                                   Wallet receiverWallet ) {
+    public void handleSameCurrency(SendMoneyDTO sendMoneyDTO,User sender,Wallet senderWallet,Wallet receiverWallet ) {
 
         BigDecimal fees =SAME_CURRENCY_FEE;
         BigDecimal debit =fees.add(sendMoneyDTO.getSenderAmount());
@@ -92,9 +93,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    public void handleDifferentCurrency(SendMoneyDTO req,User sender,Wallet senderWallet,
-                                        Wallet receiverWallet){
-
+    public void handleDifferentCurrency(SendMoneyDTO req,User sender,Wallet senderWallet,Wallet receiverWallet){
         String sendCurrency=senderWallet.getCurrencyCode().toString();
         String recieverCurrency=receiverWallet.getCurrencyCode().toString();
 
@@ -112,8 +111,10 @@ public class TransactionServiceImpl implements TransactionService {
         BigDecimal creditAmount =req.getSenderAmount().multiply(exchangeRate);
         BigDecimal debitAmount =req.getSenderAmount().add(fees);
         if(senderWallet.getBalance().compareTo(debitAmount)<0){
-            throw new BadRequestException("Insufficient balance");
+            throw new ExchangeRateFetchException("Insufficient balance");
         }
+
+        User reciever=receiverWallet.getUser();
 
         Transaction tx = Transaction.builder()
                 .senderAmount(req.getSenderAmount())
@@ -125,7 +126,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .senderUser(sender)
                 .receiverUser(receiverWallet.getUser())
                 .paymentStatus(PaymentStatus.INITIATED)
-                .transactionType(TransactionType.TRANSFER)
+                .transactionType((sender.getId().equals(reciever.getId()))?TransactionType.CONVERSION:TransactionType.TRANSFER)
                 .build();
         transactionRepository.save(tx);
 
@@ -155,21 +156,21 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public String rechargeWallet(RechargeWalletDTO rechargeWalletDTO,Authentication authentication){
+    public String rechargeWallet(RechargeWalletDTO req,Authentication authentication){
 
-        if (rechargeWalletDTO.getAmount() == null || rechargeWalletDTO.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (req.getAmount() == null || req.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new BadRequestException("Invalid amount");
         }
 
         String email=authentication.getName();
-        System.out.println(rechargeWalletDTO.getWalletid());
-        Wallet wallet=walletRepository.findById(rechargeWalletDTO.getWalletid()).orElseThrow(()->new WalletNotFoundException("Wallet Does not found"));
+        System.out.println(req.getWalletid());
+        Wallet wallet=walletRepository.findById(req.getWalletid()).orElseThrow(()->new WalletNotFoundException("Wallet Does not found"));
         User user= userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found"));
         if (!wallet.getUser().getId().equals(user.getId())) {
             throw new UnauthorizedAccessException("Unauthorized wallet access");
         }
 
-        BigDecimal finalamount = rechargeWalletDTO.getAmount();
+        BigDecimal finalamount=req.getAmount();
 
         Transaction tx = Transaction.builder()
                 .senderAmount(finalamount)
@@ -191,7 +192,6 @@ public class TransactionServiceImpl implements TransactionService {
             );
             walletRepository.save(wallet);
             tx.setPaymentStatus(PaymentStatus.SUCCESS);
-            transactionRepository.save(tx);
             notificationProducer.send(new NotificationDTO("CREDIT",
                     email, finalamount,
                     wallet.getCurrencyCode().toString(), tx.getCreatedAt(),
@@ -209,120 +209,55 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    @Transactional
-    public String convertCurrency(SendMoneyDTO sendMoneyDTO, Authentication authentication){
+    public Page<TransactionResponseDTO> getAllTransaction(Authentication authentication, int page, int size){
         String email=authentication.getName();
 
         User user=userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found"));
-        Wallet sendWallet=walletRepository.findById(sendMoneyDTO.getFromWalletId()).orElseThrow(()->new WalletNotFoundException("Sender wallet not found"));
-        Wallet recieverWallet=walletRepository.findById(sendMoneyDTO.getToWalletId()).orElseThrow(()->new WalletNotFoundException("Reciever wallet not found"));
-        if(sendWallet.getCurrencyCode().equals(recieverWallet.getCurrencyCode())){
-            throw new BadRequestException("Both wallets have same currency, conversion not required");
-        }
-
-        if (!sendWallet.getUser().getId().equals(user.getId()) ||
-                !recieverWallet.getUser().getId().equals(user.getId())) {
-            throw new UnauthorizedAccessException("Unauthorized wallet access");
-        }
-
-        BigDecimal senderAmount = sendMoneyDTO.getSenderAmount();
-        if (senderAmount == null || senderAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BadRequestException("Amount must be greater than zero");
-        }
-
-        if(sendWallet.getBalance().compareTo(senderAmount)<0){
-            throw new BadRequestException("Insufficient Balance");
-        }
-
-        String sendCurrency=sendWallet.getCurrencyCode().toString();
-        String recieverCurrency=recieverWallet.getCurrencyCode().toString();
-        String rate = redisTemplate.opsForValue()
-                .get("RATE:"+sendCurrency+":"+recieverCurrency);
-
-        if (rate == null) {
-            throw new ExchangeRateFetchException("Exchange rate not available");
-        }
-
-        BigDecimal exchangeRate = new BigDecimal(rate);
-        BigDecimal recieverAmount=exchangeRate.multiply(senderAmount);
-
-        Transaction tx = Transaction.builder()
-                .senderAmount(senderAmount)
-                .receiverAmount(recieverAmount)
-                .exchangeRate(exchangeRate)
-                .fees(BigDecimal.ZERO)
-                .senderWallet(sendWallet)
-                .receiverWallet(recieverWallet)
-                .senderUser(user)
-                .receiverUser(user)
-                .paymentStatus(PaymentStatus.INITIATED)
-                .transactionType(TransactionType.CONVERSION)
-                .build();
-        transactionRepository.save(tx);
-
-        try{
-            sendWallet.setBalance(sendWallet.getBalance().subtract(senderAmount));
-            recieverWallet.setBalance(recieverWallet.getBalance().add(recieverAmount));
-            walletRepository.save(sendWallet);
-            walletRepository.save(recieverWallet);
-            tx.setPaymentStatus(PaymentStatus.SUCCESS);
-            transactionRepository.save(tx);
-            notificationProducer.send(new NotificationDTO("DEBIT",email,senderAmount,
-                    sendCurrency, tx.getCreatedAt(),sendWallet.getBalance())
-            );
-
-            notificationProducer.send(new NotificationDTO("CREDIT",
-                    email,recieverAmount, recieverCurrency,tx.getCreatedAt(), recieverWallet.getBalance())
-            );
-
-            return "Your Amount get Converted";
-        }catch (Exception e) {
-            tx.setPaymentStatus(PaymentStatus.FAILED);
-            transactionRepository.save(tx);
-            throw e;
-        }
-    }
-
-    @Override
-    public ResponseEntity<List<TransactionResponseDTO>> getAllTransaction(Authentication authentication) {
-
-        User user =userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-
         UUID userId=user.getId();
-        List<TransactionResponseDTO> txs =
-                transactionRepository.findByUserId(userId);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        return txs.isEmpty()
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.ok(txs);
+        Page<TransactionResponseDTO> debit = transactionRepository.findDebitTransactions(userId,pageable);
+        Page<TransactionResponseDTO> credit=transactionRepository.findCreditTransactions(userId,pageable);
+
+        List<TransactionResponseDTO> mergedList = new ArrayList<>();
+        mergedList.addAll(credit.getContent());
+        mergedList.addAll(debit.getContent());
+        mergedList.sort(Comparator.comparing(TransactionResponseDTO::getCreatedAt).reversed());
+
+        int start=page*size;
+        int end=Math.min(start+size,mergedList.size());
+        List<TransactionResponseDTO> pageContent = start >= mergedList.size() ? List.of() : mergedList.subList(start, end);
+
+        return new PageImpl<>(pageContent,pageable,mergedList.size());
+
     }
 
     @Transactional
-    public String sendMoney(SendMoneyDTO sendMoneyDTO, Authentication authentication) {
+    public String sendMoney(SendMoneyDTO req, Authentication auth) {
 
-        String email=authentication.getName();
-        User sender= userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found"));
+        String email=auth.getName();
+        User sender=userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("Sender not found"));
+        List<Wallet> wallets = walletRepository.findSendRecieverWallet(req.getFromWalletId(), req.getToWalletId());
 
-        Wallet from = walletRepository.findById(sendMoneyDTO.getFromWalletId())
+        Wallet from = wallets.stream()
+                .filter(w -> w.getId().equals(req.getFromWalletId()))
+                .findFirst()
                 .orElseThrow(() -> new WalletNotFoundException("Sender wallet not found"));
-        Wallet to = walletRepository.findById(sendMoneyDTO.getToWalletId())
+
+        Wallet to = wallets.stream()
+                .filter(w -> w.getId().equals(req.getToWalletId()))
+                .findFirst()
                 .orElseThrow(() -> new WalletNotFoundException("Receiver wallet not found"));
 
-        if(!sender.getId().equals(from.getUser().getId())){
-            throw new UnauthorizedAccessException("Given sender wallet does not belongs to you");
-        }
-
-        if (from.getId().equals(to.getId())) {
-            throw new BadRequestException("Cannot transfer to same wallet");
+        if (!from.getUser().getId().equals(sender.getId())) {
+            throw new UnauthorizedAccessException("Given sender wallet does not belong to you");
         }
 
         if (from.getCurrencyCode().equals(to.getCurrencyCode())) {
-            handleSameCurrency(sendMoneyDTO, sender, from, to);
+            handleSameCurrency(req, from.getUser(), from, to);
         } else {
-            handleDifferentCurrency(sendMoneyDTO, sender, from, to);
+            handleDifferentCurrency(req, from.getUser(), from, to);
         }
-
         return "Transaction successful";
     }
 }

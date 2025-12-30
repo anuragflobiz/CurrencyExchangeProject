@@ -5,6 +5,7 @@ import com.CurrencyExchange.CurrencyExchangeProject.DTO.SendMoneyDTO;
 import com.CurrencyExchange.CurrencyExchangeProject.DTO.TransactionResponseDTO;
 import com.CurrencyExchange.CurrencyExchangeProject.Service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,9 @@ public class TransactionController {
     @Autowired
     private TransactionService transactionService;
 
+    @Autowired
+    private UserRepository userRepository;
+
 
     @PostMapping("/transfers")
     public ResponseEntity<String> transfer(@Valid @RequestBody SendMoneyDTO req, Authentication authentication){
@@ -29,13 +33,8 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.rechargeWallet(req,authentication));
     }
 
-    @PostMapping("/conversions")
-    public ResponseEntity<String> conversion(@Valid @RequestBody SendMoneyDTO req,Authentication authentication){
-        return ResponseEntity.ok(transactionService.convertCurrency(req,authentication));
-    }
-
     @GetMapping
-    public ResponseEntity<List<TransactionResponseDTO>> getMyTransactions(Authentication authentication){
-        return transactionService.getAllTransaction(authentication);
+    public Page<TransactionResponseDTO> getMyTransactions(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, Authentication authentication) {
+        return transactionService.getAllTransaction(authentication, page, size);
     }
 }
