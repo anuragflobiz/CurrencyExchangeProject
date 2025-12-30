@@ -16,9 +16,13 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "wallets",
+@Table(
+        name = "wallets",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"user_id","currency_code"})
+        },
+        indexes = {
+                @Index(name = "idx_wallet_user_id", columnList = "user_id")
         }
 )
 @Getter

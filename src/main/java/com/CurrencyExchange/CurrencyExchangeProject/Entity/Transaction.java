@@ -12,7 +12,14 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "transactions")
+@Table(
+        name = "transactions",
+        indexes = {
+                @Index(name = "idx_tx_sender_user", columnList = "sender_user_id"),
+                @Index(name = "idx_tx_receiver_user", columnList = "receiver_user_id"),
+                @Index(name = "idx_tx_created_at", columnList = "created_at")
+        }
+)
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
