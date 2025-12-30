@@ -15,23 +15,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     @Autowired private AuthService authService;
 
-    @PostMapping("/auth/otp")
+    @PostMapping("/otp")
     public String sendOtp(@Valid @RequestBody OtpRequestDTO otpRequestDTO) {
 
         return authService.sendOtp(otpRequestDTO.getEmail(), otpRequestDTO.getPurpose());
     }
 
-    @PostMapping("/auth/signup")
+    @PostMapping("/signup")
     public String signup(@Valid @RequestBody CreateUserDTO createUserDTO) {
         return authService.create(createUserDTO);
     }
 
-    @PostMapping("/auth/login")
+    @PostMapping("/login")
     public LoginResponseDTO login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
         return authService.login(loginRequestDTO.getEmail(), loginRequestDTO.getPassword());
     }
@@ -54,7 +54,7 @@ public class AuthController {
         return authService.changePassword(changePasswordDTO, authentication);
     }
 
-    @PostMapping("/auth/forgot-password")
+    @PostMapping("/forgot-password")
     public String forgotPassword(@Valid @RequestBody ForgotPasswordDTO forgotPasswordDTO) {
         return authService.forgotPassword(forgotPasswordDTO);
     }
