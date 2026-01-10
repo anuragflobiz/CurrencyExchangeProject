@@ -1,6 +1,6 @@
 package com.CurrencyExchange.CurrencyExchangeProject.DTO;
 
-import com.coinShiftProject.coinShiftProject.enums.CurrencyCode;
+import com.CurrencyExchange.CurrencyExchangeProject.Enums.CurrencyCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

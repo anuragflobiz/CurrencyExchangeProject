@@ -1,7 +1,7 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Service.Impl;
 
+import com.CurrencyExchange.CurrencyExchangeProject.Enums.CurrencyCode;
 import com.CurrencyExchange.CurrencyExchangeProject.Service.EmailService;
-import com.CurrencyExchange.CurrencyExchangeProject.enums.CurrencyCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;

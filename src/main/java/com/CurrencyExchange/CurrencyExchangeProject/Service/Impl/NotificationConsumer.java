@@ -1,11 +1,10 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Service.Impl;
 
 import com.CurrencyExchange.CurrencyExchangeProject.DTO.NotificationDTO;
+import com.CurrencyExchange.CurrencyExchangeProject.Enums.CurrencyCode;
 import com.CurrencyExchange.CurrencyExchangeProject.Service.EmailService;
-import com.CurrencyExchange.CurrencyExchangeProject.enums.CurrencyCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.awspring.cloud.sqs.annotation.SqsListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
