@@ -27,5 +27,8 @@ public class CreateUserDTO {
     @NotBlank(message = "Phone is required")
     private String phone;
 
+    @NotBlank
+    private String otp;
+
 }
 

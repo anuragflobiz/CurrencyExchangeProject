@@ -4,8 +4,12 @@ package com.CurrencyExchange.CurrencyExchangeProject.Service.Impl;
 
 import com.CurrencyExchange.CurrencyExchangeProject.Entity.User;
 import com.CurrencyExchange.CurrencyExchangeProject.Entity.Wallet;
+import com.CurrencyExchange.CurrencyExchangeProject.Enums.CurrencyCode;
+import com.CurrencyExchange.CurrencyExchangeProject.Exceptions.BadRequestException;
+import com.CurrencyExchange.CurrencyExchangeProject.Exceptions.UnauthorizedAccessException;
+import com.CurrencyExchange.CurrencyExchangeProject.Exceptions.UserNotFoundException;
+import com.CurrencyExchange.CurrencyExchangeProject.Exceptions.WalletNotFoundException;
 import com.CurrencyExchange.CurrencyExchangeProject.Repository.UserRepository;
-import com.CurrencyExchange.CurrencyExchangeProject.enums.CurrencyCode;
 import com.CurrencyExchange.CurrencyExchangeProject.DTO.WalletResponseDTO;
 import com.CurrencyExchange.CurrencyExchangeProject.Repository.WalletRepository;
 import com.CurrencyExchange.CurrencyExchangeProject.Service.WalletService;

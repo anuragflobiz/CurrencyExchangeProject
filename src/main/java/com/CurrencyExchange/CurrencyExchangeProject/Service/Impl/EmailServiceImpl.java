@@ -16,6 +16,14 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     private  JavaMailSender javaMailSender;
 
+    public void sendOtp(String toEmail,String otp){
+        SimpleMailMessage msg=new SimpleMailMessage();
+        msg.setTo(toEmail);
+        msg.setSubject("OTP Verification");
+        msg.setText("Your otp for signup in Coin Shift is "+otp+".\n OTP will be expired in next 5 minutes.");
+        javaMailSender.send(msg);
+    }
+
 
     @Override
     @Async

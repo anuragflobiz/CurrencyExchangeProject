@@ -16,7 +16,7 @@ public class NotificationProducer {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${aws.sqs.notification-queue}")
+    @Value("${queue.notification}")
     private String queueName;
 
     public void send(NotificationDTO dto) {

@@ -1,6 +1,7 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Cron;
 
-import com.CurrencyExchange.CurrencyExchange.enums.CurrencyCode;
+
+import com.CurrencyExchange.CurrencyExchangeProject.Enums.CurrencyCode;
 import com.CurrencyExchange.CurrencyExchangeProject.Service.FetchExchangeRateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;

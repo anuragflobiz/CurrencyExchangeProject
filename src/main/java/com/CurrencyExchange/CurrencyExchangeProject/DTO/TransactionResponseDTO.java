@@ -1,8 +1,9 @@
 package com.CurrencyExchange.CurrencyExchangeProject.DTO;
 
-import com.coinShiftProject.coinShiftProject.enums.CurrencyCode;
-import com.coinShiftProject.coinShiftProject.enums.PaymentStatus;
-import com.coinShiftProject.coinShiftProject.enums.TransactionType;
+
+import com.CurrencyExchange.CurrencyExchangeProject.Enums.CurrencyCode;
+import com.CurrencyExchange.CurrencyExchangeProject.Enums.PaymentStatus;
+import com.CurrencyExchange.CurrencyExchangeProject.Enums.TransactionType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

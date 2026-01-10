@@ -1,6 +1,8 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Service.Impl;
 
-import com.CurrencyExchange.CurrencyExchangeProject.DTO.ExchangeRateResponse;
+
+import com.CurrencyExchange.CurrencyExchangeProject.DTO.ExchangeRateResponseDTO;
+import com.CurrencyExchange.CurrencyExchangeProject.Exceptions.ExchangeRateFetchException;
 import com.CurrencyExchange.CurrencyExchangeProject.Service.FetchExchangeRateService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -20,8 +22,8 @@ public class FetchExchangeRateServiceImpl implements FetchExchangeRateService {
     public Map<String, BigDecimal> getAllRates(String base) {
 
         try {
-            ExchangeRateResponse response =
-                    restTemplate.getForObject(URL, ExchangeRateResponse.class, base);
+            ExchangeRateResponseDTO response =
+                    restTemplate.getForObject(URL, ExchangeRateResponseDTO.class, base);
 
             if (response == null || response.getRates() == null) {
                 throw new ExchangeRateFetchException("Empty exchange rate response");

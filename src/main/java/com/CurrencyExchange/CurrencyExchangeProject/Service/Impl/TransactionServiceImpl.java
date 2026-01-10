@@ -4,14 +4,14 @@ import com.CurrencyExchange.CurrencyExchangeProject.DTO.*;
 import com.CurrencyExchange.CurrencyExchangeProject.Entity.Transaction;
 import com.CurrencyExchange.CurrencyExchangeProject.Entity.User;
 import com.CurrencyExchange.CurrencyExchangeProject.Entity.Wallet;
+import com.CurrencyExchange.CurrencyExchangeProject.Enums.PaymentStatus;
+import com.CurrencyExchange.CurrencyExchangeProject.Enums.TransactionType;
+import com.CurrencyExchange.CurrencyExchangeProject.Exceptions.*;
 import com.CurrencyExchange.CurrencyExchangeProject.Repository.TransactionRepository;
 import com.CurrencyExchange.CurrencyExchangeProject.Repository.UserRepository;
 import com.CurrencyExchange.CurrencyExchangeProject.Repository.WalletRepository;
 import com.CurrencyExchange.CurrencyExchangeProject.Service.TransactionService;
-import com.CurrencyExchange.CurrencyExchangeProject.enums.PaymentStatus;
-import com.CurrencyExchange.CurrencyExchangeProject.enums.TransactionType;
 import jakarta.transaction.Transactional;
-import com.CurrencyExchange.CurrencyExchangeProject.Exceptions.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -209,7 +209,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public Page<TransactionResponseDTO> getAllTransaction(Authentication authentication, int page, int size){
+    public Page<TransactionResponseDTO>getAllTransaction(Authentication authentication,int page,int size){
         String email=authentication.getName();
 
         User user=userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found"));
@@ -261,4 +261,3 @@ public class TransactionServiceImpl implements TransactionService {
         return "Transaction successful";
     }
 }
-

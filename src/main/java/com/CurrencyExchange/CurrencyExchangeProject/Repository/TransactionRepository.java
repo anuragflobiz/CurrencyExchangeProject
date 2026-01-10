@@ -9,14 +9,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+
 import java.util.UUID;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction,UUID>{
 
     @Query("""
-    SELECT new com.coinShiftProject.coinShiftProject.DTO.TransactionResponseDTO(
+    SELECT new com.CurrencyExchange.CurrencyExchangeProject.DTO.TransactionResponseDTO(
         t.receiverUser.name,
         t.senderAmount,
         t.receiverAmount,
@@ -35,7 +35,7 @@ public interface TransactionRepository extends JpaRepository<Transaction,UUID>{
     Page<TransactionResponseDTO> findDebitTransactions(UUID id, Pageable pageable);
 
     @Query("""
-    SELECT new com.coinShiftProject.coinShiftProject.DTO.TransactionResponseDTO(
+    SELECT new com.CurrencyExchange.CurrencyExchangeProject.DTO.TransactionResponseDTO(
         t.senderUser.name,
         t.senderAmount,
         t.receiverAmount,
