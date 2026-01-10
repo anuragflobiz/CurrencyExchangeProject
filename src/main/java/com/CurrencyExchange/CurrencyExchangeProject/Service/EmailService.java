@@ -1,7 +1,8 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Service;
 
 
-import com.coinShiftProject.coinShiftProject.enums.CurrencyCode;
+
+import com.CurrencyExchange.CurrencyExchangeProject.Enums.CurrencyCode;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
