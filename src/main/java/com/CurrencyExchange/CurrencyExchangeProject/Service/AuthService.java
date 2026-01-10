@@ -1,5 +1,9 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Service;
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> c3627c5 (fix imports)
 import com.CurrencyExchange.CurrencyExchangeProject.DTO.ChangePasswordDTO;
 import com.CurrencyExchange.CurrencyExchangeProject.DTO.CreateUserDTO;
 import com.CurrencyExchange.CurrencyExchangeProject.DTO.ForgotPasswordDTO;
