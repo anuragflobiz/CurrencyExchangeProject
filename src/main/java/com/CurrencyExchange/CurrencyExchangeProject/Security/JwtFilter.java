@@ -32,7 +32,7 @@ public class JwtFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
 
-            if (Boolean.TRUE.equals(redisTemplate.hasKey("BLACKLIST:TOKEN:" + token))) {
+            if (redisTemplate.hasKey("BLACKLIST:TOKEN:" + token)) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token logged out");
                 return;
             }

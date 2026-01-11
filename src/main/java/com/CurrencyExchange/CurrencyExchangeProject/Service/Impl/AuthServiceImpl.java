@@ -29,8 +29,7 @@ public class AuthServiceImpl implements AuthService {
 
     private static final int OTP_TTL_MIN = 5;
 
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private UserRepository userRepository;
     @Autowired private JwtUtil jwtUtil;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private EmailService emailService;
