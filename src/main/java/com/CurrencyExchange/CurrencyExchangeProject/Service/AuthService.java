@@ -1,7 +1,7 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Service;
 
 import com.CurrencyExchange.CurrencyExchangeProject.DTO.*;
-import com.CurrencyExchange.CurrencyExchangeProject.enums.OtpPurpose;
+import com.CurrencyExchange.CurrencyExchangeProject.Enums.OtpPurpose;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 

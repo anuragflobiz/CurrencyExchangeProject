@@ -1,12 +1,18 @@
 package com.CurrencyExchange.CurrencyExchangeProject.DTO;
 
-import com.CurrencyExchange.CurrencyExchangeProject.enums.OtpPurpose;
+import com.CurrencyExchange.CurrencyExchangeProject.Enums.OtpPurpose;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class OtpRequestDTO {
     @Email
     @NotBlank
