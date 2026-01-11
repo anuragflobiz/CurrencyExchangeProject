@@ -17,7 +17,10 @@ public interface TransactionRepository extends JpaRepository<Transaction,UUID>{
 
     @Query("""
     SELECT new com.CurrencyExchange.CurrencyExchangeProject.DTO.TransactionResponseDTO(
-        t.receiverUser.name,
+        CASE 
+            WHEN t.senderUser.id = :userId THEN t.receiverUser.name
+            ELSE t.senderUser.name
+        END,
         t.senderAmount,
         t.receiverAmount,
         t.paymentStatus,
@@ -27,29 +30,16 @@ public interface TransactionRepository extends JpaRepository<Transaction,UUID>{
         t.exchangeRate,
         t.fees,
         t.createdAt,
-        'DEBIT'
+        CASE
+            WHEN t.senderUser.id = :userId THEN 'DEBIT'
+            ELSE 'CREDIT'
+        END
     )
     FROM Transaction t
-    WHERE t.senderUser.id = :id
+    WHERE t.senderUser.id = :userId
+       OR t.receiverUser.id = :userId
     """)
-    Page<TransactionResponseDTO> findDebitTransactions(UUID id, Pageable pageable);
+    Page<TransactionResponseDTO> findUserTransactions(UUID userId, Pageable pageable);
 
-    @Query("""
-    SELECT new com.CurrencyExchange.CurrencyExchangeProject.DTO.TransactionResponseDTO(
-        t.senderUser.name,
-        t.senderAmount,
-        t.receiverAmount,
-        t.paymentStatus,
-        t.transactionType,
-        t.senderWallet.currencyCode,
-        t.receiverWallet.currencyCode,
-        t.exchangeRate,
-        t.fees,
-        t.createdAt,
-        'CREDIT'
-    )
-    FROM Transaction t
-    WHERE t.receiverUser.id = :id AND t.senderUser.id !=t.receiverUser.id
-    """)
-    Page<TransactionResponseDTO> findCreditTransactions(UUID id, Pageable pageable);
+
 }

@@ -103,10 +103,8 @@ public class AuthServiceImpl implements AuthService {
     public String changePassword(ChangePasswordDTO changePasswordDTO, Authentication authentication) {
 
         String email = authentication.getName();
-
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
-
         if (!passwordEncoder.matches(changePasswordDTO.getOldPassword(), user.getPassword())) {
             throw new BadRequestException("Old password is incorrect");
         }

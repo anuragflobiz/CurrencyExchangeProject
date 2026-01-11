@@ -12,25 +12,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/transactions")
+@RequestMapping("/api/v1/transaction")
 public class TransactionController {
 
     @Autowired
     private TransactionService transactionService;
 
-    @Autowired
-    private UserRepository userRepository;
 
 
-    @PostMapping("/transfers")
+    @PostMapping("/transfer")
     public ResponseEntity<String> transfer(@Valid @RequestBody SendMoneyDTO req, Authentication authentication){
         return ResponseEntity.ok(transactionService.sendMoney(req,authentication));
     }
 
-    @PostMapping("/recharges")
+    @PostMapping("/recharge")
     public ResponseEntity<String> recharge(@Valid @RequestBody RechargeWalletDTO req, Authentication authentication){
         return ResponseEntity.ok(transactionService.rechargeWallet(req,authentication));
     }

@@ -1,6 +1,5 @@
 package com.CurrencyExchange.CurrencyExchangeProject.DTO;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -13,10 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ChangePasswordDTO {
-
-    @Email
-    @NotBlank
-    private String email;
 
     @NotBlank(message = "Old password is required")
     private String oldPassword;

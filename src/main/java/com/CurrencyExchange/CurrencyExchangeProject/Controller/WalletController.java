@@ -21,10 +21,7 @@ public class WalletController {
     private WalletService walletService;
 
     @PostMapping
-    public ResponseEntity<String> createWallet(
-            @RequestParam CurrencyCode currency,
-            Authentication authentication
-    ) {
+    public ResponseEntity<String> createWallet(@RequestParam CurrencyCode currency, Authentication authentication) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(walletService.create(currency, authentication));
     }
