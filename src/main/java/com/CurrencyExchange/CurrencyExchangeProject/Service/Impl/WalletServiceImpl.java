@@ -14,10 +14,12 @@ import com.CurrencyExchange.CurrencyExchangeProject.DTO.WalletResponseDTO;
 import com.CurrencyExchange.CurrencyExchangeProject.Repository.WalletRepository;
 import com.CurrencyExchange.CurrencyExchangeProject.Service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,57 +35,58 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public String create(CurrencyCode currencyCode, Authentication authentication) {
-        String email = authentication.getName();
-        User user= userRepository.findByEmail(email).orElseThrow(()->new UserNotFoundException("User not found"));
-        if(walletRepository.findByUserIdAndCurrencyCode(user.getId(),currencyCode).isPresent()){
-            throw new BadRequestException("User already have wallet with this currency");
-        }
-        Wallet w=new Wallet();
-        w.setCurrencyCode(currencyCode);
-        w.setUser(user);
-        w.setBalance(BigDecimal.ZERO);
 
-        walletRepository.save(w);
-        return "Wallet created successfully";
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        Wallet wallet = new Wallet();
+        wallet.setCurrencyCode(currencyCode);
+        wallet.setUser(user);
+        wallet.setBalance(BigDecimal.ZERO);
+
+        try {
+            walletRepository.save(wallet);
+            return "Wallet created successfully";
+        } catch (DataIntegrityViolationException ex) {
+            throw new BadRequestException("User already has a wallet with this currency");
+        }
     }
+
 
     @Override
-    public String deleteWallet(UUID wallet_id, Authentication authentication) {
-        String email=authentication.getName();
+    public String deleteWallet(UUID walletId, Authentication authentication) {
 
-        Wallet wallet = walletRepository.findById(wallet_id)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
-
-        if (!wallet.getUser().getEmail().equals(email)) {
-            throw new UnauthorizedAccessException("Wallet does not belong to you");
-        }
-
+        String email = authentication.getName();
+        Wallet wallet = walletRepository.findByIdAndUserEmailAndDeletedAtIsNull(walletId, email)
+                .orElseThrow(() -> new UnauthorizedAccessException("Wallet not found or does not belong to you"));
         if (wallet.getBalance().compareTo(BigDecimal.ZERO) != 0) {
-            throw new BadRequestException("You have balance in your account before deletion you have to transfer all balance to some other wallet or any one else");
+            throw new BadRequestException("Wallet balance must be zero before deletion");
         }
-
-        walletRepository.delete(wallet);
-        return "wallet deleted successfully";
+        wallet.setDeletedAt(LocalDateTime.now());
+        walletRepository.save(wallet);
+        return "Wallet deleted successfully";
     }
+
 
     @Override
     public List<WalletResponseDTO> showWallets(CurrencyCode currencyCode, Authentication authentication) {
         String email = authentication.getName();
-        User loggedUser = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (currencyCode != null) {
-            Wallet wallet = walletRepository
-                    .findByUserIdAndCurrencyCode(loggedUser.getId(), currencyCode)
+            Wallet wallet = walletRepository.findByUserEmailAndCurrencyCodeAndDeletedAtIsNull(email, currencyCode)
                     .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
-
             return List.of(
                     new WalletResponseDTO(wallet.getId(), wallet.getCurrencyCode(), wallet.getBalance())
             );
         }
 
-        return walletRepository.findAllByUserId(loggedUser.getId()).stream()
+        return walletRepository
+                .findAllByUserEmailAndDeletedAtIsNull(email)
+                .stream()
                 .map(w -> new WalletResponseDTO(w.getId(), w.getCurrencyCode(), w.getBalance()))
                 .toList();
     }
+
 }

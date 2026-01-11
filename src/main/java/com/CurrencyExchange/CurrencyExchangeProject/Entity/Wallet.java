@@ -2,10 +2,7 @@ package com.CurrencyExchange.CurrencyExchangeProject.Entity;
 
 import com.CurrencyExchange.CurrencyExchangeProject.Enums.CurrencyCode;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -28,6 +25,7 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Wallet {
 
     @Id
@@ -55,6 +53,13 @@ public class Wallet {
     @JoinColumn(name = "user_id")
     @Setter
     private User user;
+
+    @Version
+    @Setter
+    private Long version;
+
+    @Setter
+    private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "senderWallet")
     private List<Transaction> senderTransaction=new ArrayList<>();

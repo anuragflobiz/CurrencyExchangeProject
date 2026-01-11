@@ -16,18 +16,7 @@ import java.util.UUID;
 @Repository
 public interface WalletRepository extends JpaRepository<Wallet, UUID> {
 
-    @Query(""" 
-           select w.user from Wallet w where w.id=:id""")
-    User findUserByWalletId(UUID id);
-
-    Optional<Wallet> findByUserIdAndCurrencyCode(UUID id, CurrencyCode currencyCode);
-    List<Wallet> findAllByUserId(UUID id);
-
-
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("""
-        select w from Wallet w
-        where w.id = :senderId or w.id = :recieverId
-    """)
-    List<Wallet> findSendRecieverWallet(UUID senderId, UUID recieverId);
+    Optional<Wallet> findByIdAndUserEmailAndDeletedAtIsNull(UUID walletId, String email);
+    List<Wallet> findAllByUserEmailAndDeletedAtIsNull(String email);
+    Optional<Wallet> findByUserEmailAndCurrencyCodeAndDeletedAtIsNull(String email, CurrencyCode currencyCode);
 }
