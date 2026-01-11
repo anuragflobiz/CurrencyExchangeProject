@@ -1,4 +1,4 @@
-package com.CurrencyExchange.CurrencyExchangeProject.Service.Impl;
+package com.CurrencyExchange.CurrencyExchangeProject.Service.Implementation;
 
 
 import com.CurrencyExchange.CurrencyExchangeProject.DTO.ChangePasswordDTO;
@@ -6,7 +6,6 @@ import com.CurrencyExchange.CurrencyExchangeProject.DTO.ForgotPasswordDTO;
 import com.CurrencyExchange.CurrencyExchangeProject.DTO.LoginResponseDTO;
 import com.CurrencyExchange.CurrencyExchangeProject.DTO.CreateUserDTO;
 import com.CurrencyExchange.CurrencyExchangeProject.Entity.User;
-import com.CurrencyExchange.CurrencyExchangeProject.Enums.OtpPurpose;
 import com.CurrencyExchange.CurrencyExchangeProject.Exceptions.BadRequestException;
 import com.CurrencyExchange.CurrencyExchangeProject.Exceptions.UserNotFoundException;
 import com.CurrencyExchange.CurrencyExchangeProject.Repository.UserRepository;

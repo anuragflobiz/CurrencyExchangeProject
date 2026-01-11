@@ -1,11 +1,10 @@
-package com.CurrencyExchange.CurrencyExchangeProject.Service.Impl;
+package com.CurrencyExchange.CurrencyExchangeProject.Service.Implementation;
 
-import com.CurrencyExchange.CurrencyExchangeProject.Enums.CurrencyCode;
+
 import com.CurrencyExchange.CurrencyExchangeProject.Service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -16,6 +15,7 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     private  JavaMailSender javaMailSender;
 
+
     public void sendOtp(String toEmail,String otp){
         SimpleMailMessage msg=new SimpleMailMessage();
         msg.setTo(toEmail);
@@ -24,9 +24,7 @@ public class EmailServiceImpl implements EmailService {
         javaMailSender.send(msg);
     }
 
-
     @Override
-    @Async
     public void creditMail(String toEmail, BigDecimal amount, CurrencyCode currencyCode,
                            LocalDateTime time, BigDecimal finalAmount) {
         SimpleMailMessage msg=new SimpleMailMessage();
@@ -40,7 +38,6 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    @Async
     public void debitMail(String toEmail, BigDecimal amount, CurrencyCode currencyCode,
                           LocalDateTime time,BigDecimal finalAmount) {
         SimpleMailMessage msg=new SimpleMailMessage();

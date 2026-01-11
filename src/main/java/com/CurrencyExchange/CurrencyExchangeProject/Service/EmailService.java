@@ -1,6 +1,7 @@
 package com.CurrencyExchange.CurrencyExchangeProject.Service;
 
-import com.CurrencyExchange.CurrencyExchangeProject.Enums.CurrencyCode;
+
+import com.coinShiftProject.coinShiftProject.enums.CurrencyCode;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -11,9 +12,11 @@ public interface EmailService {
 
     public void sendOtp(String toEmail,String otp);
 
-    public void creditMail(String toEmail, BigDecimal amount, CurrencyCode currencyCode, LocalDateTime time, BigDecimal finalAmount);
+    public void creditMail(String toEmail, BigDecimal amount, CurrencyCode currencyCode,
+                           LocalDateTime time, BigDecimal finalAmount);
 
-    public void debitMail(String toEmail, BigDecimal amount, CurrencyCode currencyCode, LocalDateTime time,BigDecimal finalAmount);
+    public void debitMail(String toEmail, BigDecimal amount, CurrencyCode currencyCode,
+                          LocalDateTime time,BigDecimal finalAmount);
 
 
 }
